@@ -318,23 +318,20 @@
     }
 </script>-->
 
-
 @{
     ViewBag.Title = "Editable Grid";
 }
 
 <h2>Editable Grid (Local Storage)</h2>
 
-
 <!-- Dynamic Column Addition -->
 <div class="mb-3">
     <input type="text" id="newColumnName" class="form-control d-inline w-auto" placeholder="Enter column name">
     <button class="btn btn-secondary" onclick="addColumn()">Add Column</button>
 </div>
+
 <!-- Add New Data Button -->
 <button class="btn btn-primary mb-3" onclick="toggleForm()">Add New</button>
-
-
 
 <!-- Hidden Form -->
 <div id="inputForm" style="display: none;">
@@ -423,6 +420,7 @@
         dynamicColumns.forEach(col => {
             let newHeader = document.createElement("th");
             newHeader.innerHTML = `${col} ▲▼`;
+            newHeader.style.cursor = "pointer";
             newHeader.onclick = () => sortTable(col);
             tableHeader.insertBefore(newHeader, tableHeader.lastElementChild);
         });
@@ -530,6 +528,16 @@
 
         alert("Row updated successfully!");
     }
+
+    let sortDirection = {};
+
+    function sortTable(field) {
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        sortDirection[field] = !sortDirection[field];
+
+        storedData.sort((a, b) => sortDirection[field] ? (a[field] > b[field] ? 1 : -1) : (a[field] < b[field] ? 1 : -1));
+
+        localStorage.setItem("viewData", JSON.stringify(storedData));
+        loadTable();
+    }
 </script>
-
-
