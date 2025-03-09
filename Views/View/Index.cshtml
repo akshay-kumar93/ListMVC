@@ -1,0 +1,535 @@
+﻿<!--@{
+    ViewBag.Title = "Editable Grid";
+}
+
+<h2>Editable Grid (Local Storage)</h2>-->
+<!-- Add New Data Button -->
+<!--<button class="btn btn-primary mb-3" onclick="toggleForm()">Add New</button>-->
+<!-- Hidden Form -->
+<!--<div id="inputForm" style="display: none;">
+    <label>Parameter Name:</label>
+    <input type="text" id="paramName" class="form-control" />
+
+    <label>Sell Price:</label>
+    <input type="number" id="sellPrice" class="form-control" />
+
+    <label>Buy Price:</label>
+    <input type="number" id="buyPrice" class="form-control" />
+
+    <label>Is Enable:</label>
+    <input type="checkbox" id="isEnable" />
+
+    <button class="btn btn-success mt-2" onclick="addNewRow()">Save</button>
+</div>-->
+<!-- Editable Data Table -->
+<!--<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>Parameter Name</th>
+            <th>Sell Price</th>
+            <th>Buy Price</th>
+            <th>Is Enable</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        loadTable();
+    });
+
+    function toggleForm() {
+        let form = document.getElementById("inputForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+
+    function loadTable() {
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let tableBody = document.getElementById("dataTable");
+        tableBody.innerHTML = "";
+
+        storedData.forEach((item) => {
+            let row = `<tr data-id="${item.id}">
+                <td contenteditable="true">${item.parameterName}</td>
+                <td contenteditable="true">${item.sellPrice}</td>
+                <td contenteditable="true">${item.buyPrice}</td>
+                <td>
+                    <input type="checkbox" ${item.isEnable ? "checked" : ""}>
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="updateRow(${item.id}, this)">Update</button>
+                </td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    function addNewRow() {
+        let paramName = document.getElementById("paramName").value;
+        let sellPrice = parseFloat(document.getElementById("sellPrice").value) || 0;
+        let buyPrice = parseFloat(document.getElementById("buyPrice").value) || 0;
+        let isEnable = document.getElementById("isEnable").checked;
+
+        let newData = {
+            id: Date.now(),
+            parameterName: paramName,
+            sellPrice: sellPrice,
+            buyPrice: buyPrice,
+            isEnable: isEnable
+        };
+
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        storedData.push(newData);
+        localStorage.setItem("viewData", JSON.stringify(storedData));
+
+        // Reset form fields and hide form
+        document.getElementById("inputForm").style.display = "none";
+        document.getElementById("paramName").value = "";
+        document.getElementById("sellPrice").value = "";
+        document.getElementById("buyPrice").value = "";
+        document.getElementById("isEnable").checked = false;
+
+        loadTable();
+    }
+
+    function updateRow(id, button) {
+        let row = button.closest("tr");
+        let updatedData = {
+            id: id,
+            parameterName: row.children[0].innerText.trim(),
+            sellPrice: parseFloat(row.children[1].innerText.trim()) || 0,
+            buyPrice: parseFloat(row.children[2].innerText.trim()) || 0,
+            isEnable: row.children[3].children[0].checked
+        };
+
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let index = storedData.findIndex(x => x.id === id);
+        if (index !== -1) {
+            storedData[index] = updatedData;
+            localStorage.setItem("viewData", JSON.stringify(storedData));
+        }
+
+        alert("Row updated successfully!");
+    }
+</script>-->
+<!--@{
+    ViewBag.Title = "Editable Grid";
+}
+
+<h2>Editable Grid (Local Storage)</h2>-->
+<!-- Add New Data Button -->
+<!--<button class="btn btn-primary mb-3" onclick="toggleForm()">Add New</button>-->
+<!-- Dynamic Column Addition -->
+<!--<div class="mb-3">
+    <input type="text" id="newColumnName" class="form-control d-inline w-auto" placeholder="Enter column name">
+    <button class="btn btn-secondary" onclick="addColumn()">Add Column</button>
+</div>-->
+<!-- Hidden Form -->
+<!--<div id="inputForm" style="display: none;">
+    <label>Parameter Name:</label>
+    <input type="text" id="paramName" class="form-control" />
+
+    <label>Sell Price:</label>
+    <input type="number" id="sellPrice" class="form-control" />
+
+    <label>Buy Price:</label>
+    <input type="number" id="buyPrice" class="form-control" />
+
+    <label>Is Enable:</label>
+    <input type="checkbox" id="isEnable" />
+
+    <button class="btn btn-success mt-2" onclick="addNewRow()">Save</button>
+</div>-->
+<!-- Editable Data Table -->
+<!--<table class="table table-bordered mt-3">
+    <thead>
+        <tr id="tableHeader">
+            <th onclick="sortTable('parameterName')">Parameter Name ▲▼</th>
+            <th onclick="sortTable('sellPrice')">Sell Price ▲▼</th>
+            <th onclick="sortTable('buyPrice')">Buy Price ▲▼</th>
+            <th onclick="sortTable('isEnable')">Is Enable ▲▼</th>-->
+<!-- New columns will be inserted here -->
+<!--<th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        loadTable();
+    });
+
+    let sortDirection = {};
+
+    function toggleForm() {
+        let form = document.getElementById("inputForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+
+    function loadTable() {
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+
+        let tableBody = document.getElementById("dataTable");
+        tableBody.innerHTML = "";
+
+        storedData.forEach((item) => {
+            let row = `<tr data-id="${item.id}">
+                <td contenteditable="true" onblur="updateData(${item.id}, 'parameterName', this.innerText)">${item.parameterName}</td>
+                <td contenteditable="true" onblur="updateData(${item.id}, 'sellPrice', this.innerText)">${item.sellPrice}</td>
+                <td contenteditable="true" onblur="updateData(${item.id}, 'buyPrice', this.innerText)">${item.buyPrice}</td>
+                <td>
+                    <input type="checkbox" ${item.isEnable ? "checked" : ""} onchange="updateData(${item.id}, 'isEnable', this.checked)">
+                </td>`;
+
+            // Add dynamic columns
+            dynamicColumns.forEach(col => {
+                row += `<td contenteditable="true" onblur="updateData(${item.id}, '${col}', this.innerText)">${item[col] || ''}</td>`;
+            });
+
+            row += `<td>
+                <button class="btn btn-primary btn-sm" onclick="updateRow(${item.id}, this)">Update</button>
+            </td></tr>`;
+
+            tableBody.innerHTML += row;
+        });
+
+        updateTableHeaders();
+    }
+
+    function addNewRow() {
+        let paramName = document.getElementById("paramName").value;
+        let sellPrice = parseFloat(document.getElementById("sellPrice").value) || 0;
+        let buyPrice = parseFloat(document.getElementById("buyPrice").value) || 0;
+        let isEnable = document.getElementById("isEnable").checked;
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+
+        let newData = {
+            id: Date.now(),
+            parameterName: paramName,
+            sellPrice: sellPrice,
+            buyPrice: buyPrice,
+            isEnable: isEnable
+        };
+
+        // Add dynamic column fields with empty values
+        dynamicColumns.forEach(col => {
+            newData[col] = "";
+        });
+
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        storedData.push(newData);
+        localStorage.setItem("viewData", JSON.stringify(storedData));
+
+        document.getElementById("inputForm").style.display = "none";
+        loadTable();
+    }
+
+    function updateData(id, field, value) {
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let item = storedData.find(x => x.id === id);
+        if (!item) return;
+
+        item[field] = value;
+        localStorage.setItem("viewData", JSON.stringify(storedData));
+    }
+
+    function updateRow(id, button) {
+        let row = button.closest("tr");
+        let updatedData = {
+            id: id,
+            parameterName: row.children[0].innerText.trim(),
+            sellPrice: parseFloat(row.children[1].innerText.trim()) || 0,
+            buyPrice: parseFloat(row.children[2].innerText.trim()) || 0,
+            isEnable: row.children[3].children[0].checked
+        };
+
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let index = storedData.findIndex(x => x.id === id);
+        if (index !== -1) {
+            storedData[index] = updatedData;
+            localStorage.setItem("viewData", JSON.stringify(storedData));
+        }
+
+        alert("Row updated successfully!");
+    }
+
+    function sortTable(field) {
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        sortDirection[field] = !sortDirection[field];
+
+        storedData.sort((a, b) => {
+            if (typeof a[field] === "string") {
+                return sortDirection[field] ? a[field].localeCompare(b[field]) : b[field].localeCompare(a[field]);
+            } else {
+                return sortDirection[field] ? a[field] - b[field] : b[field] - a[field];
+            }
+        });
+
+        localStorage.setItem("viewData", JSON.stringify(storedData));
+        loadTable();
+    }
+
+    function addColumn() {
+        let columnName = document.getElementById("newColumnName").value.trim();
+        if (!columnName) {
+            alert("Please enter a column name.");
+            return;
+        }
+
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+
+        if (!dynamicColumns.includes(columnName)) {
+            dynamicColumns.push(columnName);
+            localStorage.setItem("dynamicColumns", JSON.stringify(dynamicColumns));
+
+            let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+            storedData.forEach(row => {
+                if (!(columnName in row)) {
+                    row[columnName] = ""; // Initialize new column in existing data
+                }
+            });
+
+            localStorage.setItem("viewData", JSON.stringify(storedData));
+        }
+
+        document.getElementById("newColumnName").value = "";
+        loadTable();
+    }
+
+    function updateTableHeaders() {
+        let tableHeader = document.getElementById("tableHeader");
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+
+        // Remove existing dynamic column headers before "Actions"
+        while (tableHeader.children.length > 5) {
+            tableHeader.removeChild(tableHeader.children[4]);
+        }
+
+        dynamicColumns.forEach(col => {
+            let newHeader = document.createElement("th");
+            newHeader.innerHTML = `${col} ▲▼`;
+            newHeader.onclick = () => sortTable(col);
+            tableHeader.insertBefore(newHeader, tableHeader.lastElementChild);
+        });
+    }
+</script>-->
+
+
+@{
+    ViewBag.Title = "Editable Grid";
+}
+
+<h2>Editable Grid (Local Storage)</h2>
+
+
+<!-- Dynamic Column Addition -->
+<div class="mb-3">
+    <input type="text" id="newColumnName" class="form-control d-inline w-auto" placeholder="Enter column name">
+    <button class="btn btn-secondary" onclick="addColumn()">Add Column</button>
+</div>
+<!-- Add New Data Button -->
+<button class="btn btn-primary mb-3" onclick="toggleForm()">Add New</button>
+
+
+
+<!-- Hidden Form -->
+<div id="inputForm" style="display: none;">
+    <label>Parameter Name:</label>
+    <input type="text" id="paramName" class="form-control" />
+
+    <label>Sell Price:</label>
+    <input type="number" id="sellPrice" class="form-control" />
+
+    <label>Buy Price:</label>
+    <input type="number" id="buyPrice" class="form-control" />
+
+    <label>Is Enable:</label>
+    <input type="checkbox" id="isEnable" />
+
+    <!-- Dynamic Input Fields Will Be Added Here -->
+    <div id="dynamicInputs"></div>
+
+    <button class="btn btn-success mt-2" onclick="addNewRow()">Save</button>
+</div>
+
+<!-- Editable Data Table -->
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr id="tableHeader">
+            <th onclick="sortTable('parameterName')">Parameter Name ▲▼</th>
+            <th onclick="sortTable('sellPrice')">Sell Price ▲▼</th>
+            <th onclick="sortTable('buyPrice')">Buy Price ▲▼</th>
+            <th onclick="sortTable('isEnable')">Is Enable ▲▼</th>
+            <!-- Dynamic columns will be inserted here -->
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        loadTable();
+        updateDynamicInputs();
+    });
+
+    function toggleForm() {
+        let form = document.getElementById("inputForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+        updateDynamicInputs();
+    }
+
+    function addColumn() {
+        let columnName = document.getElementById("newColumnName").value.trim();
+        if (!columnName) {
+            alert("Please enter a column name.");
+            return;
+        }
+
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+        if (!dynamicColumns.includes(columnName)) {
+            dynamicColumns.push(columnName);
+            localStorage.setItem("dynamicColumns", JSON.stringify(dynamicColumns));
+
+            let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+            storedData.forEach(row => {
+                if (!(columnName in row)) {
+                    row[columnName] = ""; // Initialize new column in existing data
+                }
+            });
+
+            localStorage.setItem("viewData", JSON.stringify(storedData));
+        }
+
+        document.getElementById("newColumnName").value = "";
+        updateTableHeaders();
+        updateDynamicInputs();
+        loadTable();
+    }
+
+    function updateTableHeaders() {
+        let tableHeader = document.getElementById("tableHeader");
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+
+        // Remove existing dynamic column headers before "Actions"
+        while (tableHeader.children.length > 5) {
+            tableHeader.removeChild(tableHeader.children[4]);
+        }
+
+        dynamicColumns.forEach(col => {
+            let newHeader = document.createElement("th");
+            newHeader.innerHTML = `${col} ▲▼`;
+            newHeader.onclick = () => sortTable(col);
+            tableHeader.insertBefore(newHeader, tableHeader.lastElementChild);
+        });
+    }
+
+    function updateDynamicInputs() {
+        let dynamicInputs = document.getElementById("dynamicInputs");
+        dynamicInputs.innerHTML = ""; // Clear old inputs
+
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+        dynamicColumns.forEach(col => {
+            let label = document.createElement("label");
+            label.innerText = col + ":";
+
+            let input = document.createElement("input");
+            input.type = "text";
+            input.id = col;
+            input.className = "form-control";
+
+            dynamicInputs.appendChild(label);
+            dynamicInputs.appendChild(input);
+        });
+    }
+
+    function addNewRow() {
+        let paramName = document.getElementById("paramName").value;
+        let sellPrice = parseFloat(document.getElementById("sellPrice").value) || 0;
+        let buyPrice = parseFloat(document.getElementById("buyPrice").value) || 0;
+        let isEnable = document.getElementById("isEnable").checked;
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+
+        let newData = {
+            id: Date.now(),
+            parameterName: paramName,
+            sellPrice: sellPrice,
+            buyPrice: buyPrice,
+            isEnable: isEnable
+        };
+
+        // Add dynamic column fields from form
+        dynamicColumns.forEach(col => {
+            newData[col] = document.getElementById(col)?.value || "";
+        });
+
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        storedData.push(newData);
+        localStorage.setItem("viewData", JSON.stringify(storedData));
+
+        document.getElementById("inputForm").style.display = "none";
+        loadTable();
+    }
+
+    function loadTable() {
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let dynamicColumns = JSON.parse(localStorage.getItem("dynamicColumns")) || [];
+        let tableBody = document.getElementById("dataTable");
+        tableBody.innerHTML = "";
+
+        storedData.forEach((item) => {
+            let row = `<tr data-id="${item.id}">
+                <td contenteditable="true" onblur="updateData(${item.id}, 'parameterName', this.innerText)">${item.parameterName}</td>
+                <td contenteditable="true" onblur="updateData(${item.id}, 'sellPrice', this.innerText)">${item.sellPrice}</td>
+                <td contenteditable="true" onblur="updateData(${item.id}, 'buyPrice', this.innerText)">${item.buyPrice}</td>
+                <td>
+                    <input type="checkbox" ${item.isEnable ? "checked" : ""} onchange="updateData(${item.id}, 'isEnable', this.checked)">
+                </td>`;
+
+            dynamicColumns.forEach(col => {
+                row += `<td contenteditable="true" onblur="updateData(${item.id}, '${col}', this.innerText)">${item[col] || ''}</td>`;
+            });
+
+            row += `<td><button class="btn btn-primary btn-sm" onclick="updateRow(${item.id}, this)">Update</button></td></tr>`;
+
+            tableBody.innerHTML += row;
+        });
+
+        updateTableHeaders();
+    }
+
+    function updateData(id, field, value) {
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let item = storedData.find(x => x.id === id);
+        if (!item) return;
+
+        item[field] = value;
+        localStorage.setItem("viewData", JSON.stringify(storedData));
+    }
+
+    function updateRow(id, button) {
+        let row = button.closest("tr");
+        let updatedData = {
+            id: id,
+            parameterName: row.children[0].innerText.trim(),
+            sellPrice: parseFloat(row.children[1].innerText.trim()) || 0,
+            buyPrice: parseFloat(row.children[2].innerText.trim()) || 0,
+            isEnable: row.children[3].children[0].checked
+        };
+
+        let storedData = JSON.parse(localStorage.getItem("viewData")) || [];
+        let index = storedData.findIndex(x => x.id === id);
+        if (index !== -1) {
+            storedData[index] = updatedData;
+            localStorage.setItem("viewData", JSON.stringify(storedData));
+        }
+
+        alert("Row updated successfully!");
+    }
+</script>
+
+
